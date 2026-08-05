@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web Office</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Web Office</h1>
+      <p class="lead">This is a simple Web Office landing page served from templates/web-office.</p>
+      <p class="meta">Path: /web-office/web-office.html</p>
+      <p>
+        <a class="button primary" href="/web-office/create-service.html">Create Service</a>
+        <a class="button primary" href="/web-office/create-customer.html">Create Customer</a>
+        <a class="button primary" href="/web-office/create-order.html">Create Order</a>
+      </p>
+      {% if services %}
+      <section class="services">
+        <h2>Services</h2>
+        <ul class="services-list">
+        {% for s in services %}
+          <li class="service-item">
+            <div class="service-head"><span class="service-type">{{ s.service_type }}</span> — <span class="service-name">{{ s.name }}</span></div>
+            <p class="service-desc">{{ s.description }}</p>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% else %}
+      <p>No services available yet.</p>
+      {% endif %}
+
+      {% if customers %}
+      <section class="customers">
+        <h2>Customers</h2>
+        <ul class="customers-list">
+        {% for c in customers %}
+          <li class="customer-item">
+            <div class="customer-head"><span class="customer-name">{{ c.first_name }} {{ c.last_name }}</span></div>
+            <p class="customer-contact">{{ c.email or c.phone }}</p>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% else %}
+      <p>No customers available yet.</p>
+      {% endif %}
+
+      {% if orders %}
+      <section class="orders">
+        <h2>Orders</h2>
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Service</th>
+              <th>Provider</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td>{{ order.id }}</td>
+              <td>{{ order.customer_name }}</td>
+              <td>{{ order.service_name }}</td>
+              <td>{{ order.provider_name }}</td>
+              <td>{{ order.start_time }}</td>
+              <td>{{ order.end_time }}</td>
+              <td>{{ order.status }}</td>
+              <td>{{ order.details }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      {% else %}
+      <p>No orders available yet.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>
