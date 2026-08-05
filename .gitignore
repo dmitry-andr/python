@@ -1,0 +1,59 @@
+# --- Python basics ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# --- Virtual environments ---
+.env
+.venv/
+venv/
+ENV/
+env.bak/
+env/
+
+# --- IDE/editor files ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- FastAPI / Uvicorn ---
+# Uvicorn reload artifacts
+*.pid
+*.db
+*.sqlite3
+
+# --- LangChain / local storage ---
+# Vector store / embeddings cache
+*.faiss
+*.chroma/
+*.index
+*.jsonl
+
+# --- Testing ---
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+.mypy_cache/
+
+# --- Packaging / build ---
+build/
+dist/
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Environment variables ---
+*.env
+.env.*
