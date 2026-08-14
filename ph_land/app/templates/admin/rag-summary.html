@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>RAG Summary</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>RAG Summary</h1>
+      <p class="lead">Overview of the current vector database content.</p>
+      <p>
+        <a class="button primary" href="/admin/admin.html">Back to Admin</a>
+      </p>
+
+      <section>
+        <h2>Database info</h2>
+        <ul>
+          <li><strong>Vector DB directory:</strong> {{ summary.vector_db_dir }}</li>
+          <li><strong>Document count:</strong> {{ summary.document_count }}</li>
+          <li><strong>Total characters:</strong> {{ summary.total_characters }}</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Source files</h2>
+        {% if summary.source_files %}
+          <ul>
+            {% for source in summary.source_files %}
+              <li>{{ source }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No source files detected.</p>
+        {% endif %}
+      </section>
+
+      <section>
+        <h2>Sample documents</h2>
+        {% if summary.sample_documents %}
+          <ul>
+            {% for sample in summary.sample_documents %}
+              <li>
+                <strong>Chunk {{ sample.index }}:</strong>
+                <div>{{ sample.preview }}</div>
+                <small>Length: {{ sample.length }}</small>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No document chunks available yet.</p>
+        {% endif %}
+      </section>
+    </div>
+  </body>
+</html>

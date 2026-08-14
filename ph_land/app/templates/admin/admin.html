@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+    <script src="/static/admin/script.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Admin</h1>
+      <p class="lead">This is the admin landing page.</p>
+      <p class="meta">Path: /admin/admin.html</p>
+      <p>
+        <a class="button primary" href="/web-office/web-office.html">Web Office</a>
+        <button class="button secondary" id="init-rag-btn" type="button" onclick="initRag()">Init RAG</button>
+        <a class="button secondary" href="/admin/rag-summary.html">RAG Summary</a>
+      </p>
+      <p>
+        <span id="rag-status" style="margin-left:12px; font-weight:600">RAG: unknown</span>
+      </p>
+    </div>
+  </body>
+</html>

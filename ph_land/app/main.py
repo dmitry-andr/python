@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+import os
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.utils.config import APP_NAME, APP_VERSION, FAVICON_PATH, STATIC_DIR, TEMPLATES_DIR
 from app.services.services_service import append_service, load_services
 from app.services.customers_service import append_customer, load_customers
 from app.services.order_service import OrderService
@@ -14,13 +16,22 @@ from app.domain.customer import Customer
 
 from app.web_services_api.routes_order import web_services_router
 from app.llm.controllers.chat_router import chat_router
+from app.llm.rag.rag_retriever import build_or_load_vectorstore, get_vectorstore_summary
+from pathlib import Path
+from app.utils.config import BASE_DIR, VECTOR_DB_DIR
+from dotenv import load_dotenv
+
+load_dotenv()
+
+if not os.getenv("OPENAI_API_KEY"):
+    raise SystemExit("Set OPENAI_API_KEY in your environment or .env file first.")
 
 
-app = FastAPI(title="ph_land", version="0.1.0")
+app = FastAPI(title=APP_NAME, version=APP_VERSION)
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Serve the web-office template at /web-office/web-office.html
 @app.get("/web-office/web-office.html", response_class=HTMLResponse)
@@ -53,6 +64,7 @@ async def web_office(request: Request):
         "web-office/web-office.html",
         {"services": services, "customers": customers, "orders": order_items},
     )
+
 
 @app.get("/web-office/create-service.html", response_class=HTMLResponse)
 async def create_service(request: Request):
@@ -137,10 +149,48 @@ async def create_customer_post(request: Request):
 
     return RedirectResponse(url="/web-office/web-office.html", status_code=303)
 
+
 @app.get("/chatbot.html", response_class=HTMLResponse)
 async def chatbot(request: Request):
     return templates.TemplateResponse(request, "/chatbot.html", {})
 
+@app.get("/admin/admin.html", response_class=HTMLResponse)
+async def admin_page(request: Request):
+    return templates.TemplateResponse(request, "admin/admin.html", {})
+
+
+@app.get("/admin/rag-summary.html", response_class=HTMLResponse)
+async def rag_summary_page(request: Request):
+    summary = get_vectorstore_summary()
+    return templates.TemplateResponse(request, "admin/rag-summary.html", {"summary": summary})
+
+
+@app.post("/admin/init-rag")
+async def init_rag(request: Request):
+    """Initialize or rebuild the RAG vector DB from workspace files.
+
+    Expects JSON body: { "force": false }
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    force = bool(body.get("force", False))
+    try:
+        build_or_load_vectorstore(force_rebuild=force)
+        return {"status": "ok", "message": "RAG vector DB initialized"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+@app.get("/admin/rag-status")
+async def rag_status():
+    """Return whether the RAG vector DB appears initialized."""
+    try:
+        p = Path(VECTOR_DB_DIR)
+        initialized = p.exists() and any(p.iterdir())
+        return {"initialized": bool(initialized), "path": str(p)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 #REST services endpoints for orders
@@ -152,7 +202,7 @@ app.include_router(chat_router, prefix="/chat-api", tags=["chat-api"])
 
 @app.get("/favicon.ico")
 async def favicon():
-    return FileResponse("app/static/favicon.ico")
+    return FileResponse(FAVICON_PATH)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):

@@ -4,10 +4,8 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from app.utils.config import DATA_DIR, ORDERS_FILE
 from app.domain import Order
-
-DATA_DIR = Path("data")
-ORDERS_FILE = DATA_DIR / "orders.json"
 
 
 def _ensure_data_dir() -> None:

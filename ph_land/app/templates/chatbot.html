@@ -20,10 +20,13 @@
     <div id="chat"></div>
 
     <div class="input-row">
-
+        <div id="limit-message" style="display:none; color:red; font-size:0.85em; margin-top:4px;">
+            Limit of 100 characters reached
+        </div>
         <input
             id="message"
             placeholder="Type your message..."
+            maxlength="100"
         >
 
         <button onclick="sendMessage()">
