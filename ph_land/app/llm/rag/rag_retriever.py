@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from app.utils.config import BASE_DIR, DATA_DIR, EMBEDDING_MODEL, VECTOR_DB_DIR
+from app.utils.config import BASE_DIR, DATA_DIR, EMBEDDING_OPENAI_MODEL, VECTOR_DB_DIR
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -30,7 +30,7 @@ def build_or_load_vectorstore(force_rebuild: bool = False) -> Chroma:
     in a local Chroma DB. Reuses the existing DB on disk unless force_rebuild=True
     or the DB doesn't exist yet.
     """
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_OPENAI_MODEL)
     if os.path.isdir(VECTOR_DB_DIR) and not force_rebuild:
         return Chroma(persist_directory=str(VECTOR_DB_DIR), embedding_function=embeddings)
 

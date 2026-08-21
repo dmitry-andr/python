@@ -1,21 +1,14 @@
 from typing import List, Optional
 
-from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
-from app.utils.config import CHAT_MODEL, TEMPERATURE
+from app.llm.core.llm_factory import get_llm
 from app.llm.core.llm_message_category_classifier import classify_message
 from app.llm.core.prompt_loader import load_prompt
 from app.llm.rag.rag_retriever import get_retriever
 from app.utils.user_session_store import MAX_HISTORY_TURNS, MEANINGLESS_THRESHOLD, session_store
-
-
-# switch to another model
-# from langchain_ollama import ChatOllama
-# self.llm = ChatOllama(model="llama3.1")
 
 
 _retriever = None
@@ -100,10 +93,7 @@ class LLMService:
 
     def __init__(self):
 
-        self.llm = ChatOpenAI(
-            model=CHAT_MODEL,
-            temperature=TEMPERATURE,
-        )
+        self.llm = get_llm()
 
         # Load system prompt from file
         self.system_prompt = load_prompt("system.md")

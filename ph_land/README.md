@@ -31,6 +31,7 @@ A simple FastAPI web app with a landing page and basic REST endpoints.
 
 
 4. .env file
+LLM_PROVIDER=openai
 OPENAI_API_KEY=  ... 
 WORKSPACE_FOLDER_PATH = user/my_workspace/
 

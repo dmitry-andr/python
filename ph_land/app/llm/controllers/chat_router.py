@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Cookie, Response
 
+from app.llm.core import llm_controller
 from app.llm.model.chat import ChatRequest, ChatResponse
 from app.llm.core.llm_chat import llm_service
 
@@ -14,7 +15,7 @@ async def chat(
     session_id: Optional[str] = Cookie(default=None),
 ):
     active_session_id = request.session_id or session_id
-    llm_response = llm_service.ask(request.message, session_id=active_session_id)
+    llm_response = llm_controller.process_user_input(request.message, session_id=active_session_id)
 
     response.set_cookie(
         key="session_id",

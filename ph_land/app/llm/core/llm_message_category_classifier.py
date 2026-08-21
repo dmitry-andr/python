@@ -1,14 +1,9 @@
-import os
-
-from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
-
-from app.utils.config import BUSINESS_NAME, CHAT_MODEL, SERVICES
+from app.llm.core.llm_factory import get_secondary_llm
+from app.utils.config import BUSINESS_NAME, SERVICES
 from app.llm.core.prompt_loader import load_prompt
 
-load_dotenv()
 
 VALID_CATEGORIES = (
     "service_question",
@@ -18,12 +13,7 @@ VALID_CATEGORIES = (
 )
 
 def _get_router_chain():
-    if not os.getenv("OPENAI_API_KEY"):
-        raise RuntimeError(
-            "OPENAI_API_KEY is not set. Configure it in your environment or .env file before using the LLM."
-        )
-
-    router_llm = ChatOpenAI(model=CHAT_MODEL, temperature=0)
+    router_llm = get_secondary_llm()
     router_prompt = PromptTemplate.from_template(
         load_prompt("message_categorization.md")
     )
