@@ -38,12 +38,14 @@ def extract_lead(history_text: str) -> Lead:
     return structured_llm.invoke(prompt)
 
 
-def save_lead(lead: Lead) -> str:
+def save_lead(lead: Lead, session_id: Optional[str] = None) -> str:
     """
     Persists a lead. This is a stand-in for a real integration --
     swap this out for a CRM API call, a Google Sheets append, or a DB insert.
     """
     record = lead.model_dump()
+    if session_id is not None:
+        record["capturedInSessionId"] = session_id
     record["captured_at"] = datetime.utcnow().isoformat()
     if record.get("service_interest") in SERVICES:
         record["service_label"] = SERVICES[record["service_interest"]]["label"]
@@ -98,7 +100,7 @@ def maybe_capture_lead(message: str, history_text: str, session_id: Optional[str
     lead = extract_lead(history_for_prompt)
 
     if lead.ready_to_book and lead.contact:
-        confirmation = save_lead(lead)
+        confirmation = save_lead(lead, session_id=session_id)
         session = session_store.record_turn(
             session_id=session_id,
             user_message=message,
@@ -124,7 +126,6 @@ def maybe_capture_lead(message: str, history_text: str, session_id: Optional[str
         missing.append("which service you're interested in")
 
     if missing:
-        #prompt = "Happy to get that booked! Could you share " + ", ".join(missing) + "?"
         prompt = "Happy to get that booked! Could you share " + missing[0] + "?"
         session = session_store.record_turn(
             session_id=session_id,

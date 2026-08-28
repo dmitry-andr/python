@@ -1,0 +1,12 @@
+{
+  "service1": {
+    "label": "Service 1 label",
+    "description": "service 1 description up to 100 symbols. This is a placeholder for the actual service description.",
+    "doc_file": "service1_document.md"
+  },
+  "service2": {
+    "label": "Service 2 label",
+    "description": "service 2 description up to 100 symbols. This is a placeholder for the actual service description.",
+    "doc_file": "service2_document.md"
+  }
+}

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lead Details</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Lead Details</h1>
+
+      <div class="button-row">
+        <a class="button secondary" href="/web-office/leads-list.html">Back to leads list</a>
+      </div>
+
+      {% if lead %}
+      <div class="lead-detail-grid">
+        <div class="lead-detail-label">Captured date</div>
+        <div>{{ lead.captured_at or 'Unknown date' }}</div>
+
+        <div class="lead-detail-label">Customer name</div>
+        <div>{{ lead.name or 'Unknown customer' }}</div>
+
+        <div class="lead-detail-label">Service</div>
+        <div>{{ lead.service_label or lead.service_interest or 'Not specified' }}</div>
+
+        <div class="lead-detail-label">Contact</div>
+        <div>{{ lead.contact or 'Not provided' }}</div>
+
+        <div class="lead-detail-label">Preferred date</div>
+        <div>{{ lead.preferred_date or 'Not provided' }}</div>
+
+        <div class="lead-detail-label">Location / Notes</div>
+        <div>{{ lead.location_or_notes or 'Not provided' }}</div>
+
+        <div class="lead-detail-label">Ready to book</div>
+        <div>{{ 'Yes' if lead.ready_to_book else 'No' }}</div>
+
+        <div class="lead-detail-label">Session ID</div>
+        <div>{{ lead.captured_in_session_id or lead.capturedInSessionId or lead.session_id or lead.sessionId or 'Unknown' }}</div>
+      </div>
+
+      {% if session_history %}
+      <div style="margin-top: 2rem;">
+        <h2>Session history</h2>
+        <ul class="chat-history">
+          {% for entry in session_history %}
+          <li>
+            <div><strong>User:</strong> {{ entry.userMessage or 'No user message' }}</div>
+            <div><strong>Assistant:</strong> {{ entry.llmAnswer or 'No assistant reply' }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% elif lead_session_id %}
+      <div style="margin-top: 2rem;">
+        <h2>Session history</h2>
+        <p class="empty-state">No chat log found for session {{ lead_session_id }}.</p>
+      </div>
+      {% endif %}
+      {% else %}
+      <p class="empty-state">Lead not found.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

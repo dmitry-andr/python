@@ -1,23 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
 from typing import List
 
 from app.domain.service import Service
-
-DATA_DIR = Path("data")
-SERVICES_FILE = DATA_DIR / "services.json"
-
-
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-
+from app.utils.config import SERVICES_FILE
 
 def load_services() -> List[Service]:
-    _ensure_data_dir()
-    if not SERVICES_FILE.exists():
-        return []
     try:
         with SERVICES_FILE.open("r", encoding="utf-8") as fh:
             data = json.load(fh)
@@ -35,7 +24,6 @@ def load_services() -> List[Service]:
 
 
 def save_services(services: List[Service] | List[dict]) -> None:
-    _ensure_data_dir()
     # Normalize to list of dicts for JSON serialization
     out = []
     for s in services:

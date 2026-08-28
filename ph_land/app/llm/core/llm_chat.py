@@ -8,7 +8,8 @@ from app.llm.core.llm_factory import get_llm
 from app.llm.core.llm_message_category_classifier import classify_message
 from app.llm.core.prompt_loader import load_prompt
 from app.llm.rag.rag_retriever import get_retriever
-from app.utils.user_session_store import MAX_HISTORY_TURNS, MEANINGLESS_THRESHOLD, session_store
+from app.utils.config import MEANINGLESS_THRESHOLD
+from app.utils.user_session_store import MAX_HISTORY_TURNS, session_store
 
 
 _retriever = None

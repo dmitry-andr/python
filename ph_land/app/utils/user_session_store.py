@@ -20,11 +20,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
-
-from app.utils.config import DATA_DIR, MAX_HISTORY_TURNS, MEANINGLESS_THRESHOLD, SESSIONS_FILE
-
-DATA_DIR_DEFAULT = DATA_DIR
-DEFAULT_STORE_PATH = SESSIONS_FILE
+from app.utils.config import MAX_HISTORY_TURNS, SESSIONS_FILE
+from app.utils.user_chat_log_service import write_session_log
 
 
 class SessionData(BaseModel):
@@ -36,14 +33,20 @@ class SessionData(BaseModel):
     meaningless_messages: int = 0
     history: List[dict] = Field(default_factory=list)  # [{"role": "...", "content": "..."}]
 
-
 class SessionStore:
     """Thread-safe, JSON-file-backed store for SessionData objects."""
 
-    def __init__(self, path: Path = DEFAULT_STORE_PATH):
+    def __init__(self, path: Path = SESSIONS_FILE):
         self._path = path
         self._lock = threading.Lock()
         self._sessions: Dict[str, SessionData] = {}
+        # ensure the directory for the sessions file exists so writes don't fail
+        try:
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            # best-effort: if we can't create the dir, let subsequent IO raise
+            pass
+
         self._load()
 
     # -- persistence ------------------------------------------------------
@@ -66,6 +69,14 @@ class SessionStore:
         self._path.write_text(
             json.dumps(serialisable, indent=2, default=str), encoding="utf-8"
         )
+
+        # write per-session chat logs using the dedicated service (best-effort)
+        for sid, session in self._sessions.items():
+            try:
+                write_session_log(session)
+            except Exception:
+                # do not fail on logging errors
+                continue
 
     # -- public API ---------------------------------------------------------
 

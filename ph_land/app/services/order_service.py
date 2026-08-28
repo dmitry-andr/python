@@ -1,21 +1,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Dict
 
-from app.utils.config import DATA_DIR, ORDERS_FILE
+from app.utils.config import ORDERS_FILE
 from app.domain import Order
 
 
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not ORDERS_FILE.exists():
-        ORDERS_FILE.write_text("[]", encoding="utf-8")
-
-
 def _load_orders() -> Dict[str, Order]:
-    _ensure_data_dir()
     try:
         with ORDERS_FILE.open("r", encoding="utf-8") as fh:
             data = json.load(fh)
@@ -41,7 +33,6 @@ def _order_to_dict(order: Order) -> dict:
 
 
 def _save_orders(orders: Dict[str, Order]) -> None:
-    _ensure_data_dir()
     with ORDERS_FILE.open("w", encoding="utf-8") as fh:
         json.dump([_order_to_dict(order) for order in orders.values()], fh, indent=2)
 

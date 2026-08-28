@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from app.utils.config import BASE_DIR, DATA_DIR, EMBEDDING_OPENAI_MODEL, VECTOR_DB_DIR
+from app.utils.config import BASE_DIR, EMBEDDING_OPENAI_MODEL, VECTOR_DB_DIR
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings

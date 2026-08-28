@@ -5,17 +5,10 @@ import json
 from typing import List
 
 from app.domain.customer import Customer
-
-DATA_DIR = Path("data")
-CUSTOMERS_FILE = DATA_DIR / "customers.json"
-
-
-def _ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+from app.utils.config import CUSTOMERS_FILE
 
 
 def load_customers() -> List[Customer]:
-    _ensure_data_dir()
     if not CUSTOMERS_FILE.exists():
         return []
     try:
@@ -33,7 +26,6 @@ def load_customers() -> List[Customer]:
 
 
 def save_customers(customers: List[Customer] | List[dict]) -> None:
-    _ensure_data_dir()
     out = []
     for customer in customers:
         if isinstance(customer, Customer):

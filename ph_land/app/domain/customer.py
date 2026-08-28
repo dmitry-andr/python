@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Optional
-from uuid import uuid4
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 

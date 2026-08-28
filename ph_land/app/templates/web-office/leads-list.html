@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Leads List</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Leads List</h1>
+
+      <div class="button-row">
+        <a class="button secondary" href="/web-office/web-office.html">Back to Web Office</a>
+      </div>
+
+      {% if leads %}
+      <table class="leads-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Customer Name</th>
+            <th>Service</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lead in leads %}
+          <tr>
+            <td>{{ lead.captured_at or 'Unknown date' }}</td>
+            <td>{{ lead.name or 'Unknown customer' }}</td>
+            <td>{{ lead.service_label or lead.service_interest or 'Not specified' }}</td>
+            <td>
+              <a class="button primary" href="/web-office/lead-chat-details.html?leadIndex={{ loop.index0 }}">Chat details</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty-state">No leads available yet.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

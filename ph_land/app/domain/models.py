@@ -16,14 +16,14 @@ Design choices:
 
 from __future__ import annotations
 
-from datetime import datetime, time, date, timezone
+from datetime import time, date, timezone
 
 UTCTZ = timezone.utc
 from enum import Enum
 from typing import Optional
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, EmailStr, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 def new_id() -> str:

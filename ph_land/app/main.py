@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import json
 import os
 
 from fastapi import FastAPI, HTTPException, Request
@@ -6,10 +7,11 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.utils.config import APP_NAME, APP_VERSION, FAVICON_PATH, STATIC_DIR, TEMPLATES_DIR
+from app.utils.config import APP_NAME, APP_VERSION, VECTOR_DB_DIR, RUNTIME_DATA_DIR, FAVICON_PATH, STATIC_DIR, TEMPLATES_DIR
 from app.services.services_service import append_service, load_services
 from app.services.customers_service import append_customer, load_customers
 from app.services.order_service import OrderService
+from app.services.leads_service import load_leads, load_session_history_for_lead
 from app.domain import Order
 from app.domain.service import Service
 from app.domain.customer import Customer
@@ -18,10 +20,12 @@ from app.web_services_api.routes_order import web_services_router
 from app.llm.controllers.chat_router import chat_router
 from app.llm.rag.rag_retriever import build_or_load_vectorstore, get_vectorstore_summary
 from pathlib import Path
-from app.utils.config import BASE_DIR, VECTOR_DB_DIR
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
+RUNTIME_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 if not os.getenv("OPENAI_API_KEY"):
     raise SystemExit("Set OPENAI_API_KEY in your environment or .env file first.")
@@ -63,6 +67,42 @@ async def web_office(request: Request):
         request,
         "web-office/web-office.html",
         {"services": services, "customers": customers, "orders": order_items},
+    )
+
+
+@app.get("/web-office/leads-list.html", response_class=HTMLResponse)
+async def leads_list_page(request: Request):
+    leads = load_leads()
+    return templates.TemplateResponse(request, "web-office/leads-list.html", {"leads": leads})
+
+
+@app.get("/web-office/lead-chat-details.html", response_class=HTMLResponse)
+async def chat_details_page(request: Request):
+    lead_index = request.query_params.get("leadIndex")
+    try:
+        index = int(lead_index) if lead_index is not None else None
+    except ValueError:
+        index = None
+
+    leads = load_leads()
+    lead = leads[index] if index is not None and 0 <= index < len(leads) else None
+    lead_session_id = None
+    if lead:
+        for key in ("captured_in_session_id", "capturedInSessionId", "session_id", "sessionId"):
+            lead_session_id = lead.get(key)
+            if lead_session_id:
+                break
+
+    return templates.TemplateResponse(
+        request,
+        "web-office/lead-chat-details.html",
+        {
+            "lead": lead,
+            "lead_index": index,
+            "leads": leads,
+            "lead_session_id": lead_session_id,
+            "session_history": load_session_history_for_lead(lead),
+        },
     )
 
 
