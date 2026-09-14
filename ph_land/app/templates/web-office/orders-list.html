@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Orders List</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="section-header">
+        <h1>Orders</h1>
+        <a class="button secondary" href="/web-office/web-office.html">Back to Web Office</a>
+      </div>
+
+      {% if orders %}
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Service</th>
+            <th>Provider</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+            <th>Details</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.customer_name }}</td>
+            <td>{{ order.service_name }}</td>
+            <td>{{ order.provider_name }}</td>
+            <td>{{ order.start_time }}</td>
+            <td>{{ order.end_time }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.details }}</td>
+            <td>
+              <a class="button secondary small" href="/web-office/create-edit-order.html?order_id={{ order.id }}">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No orders available yet.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

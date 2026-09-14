@@ -13,36 +13,28 @@
       <p class="lead">This is a simple Web Office landing page served from templates/web-office.</p>
       <p class="meta">Path: /web-office/web-office.html</p>
       <p>
-        <a class="button primary" href="/web-office/create-service.html">Create Service</a>
-        <a class="button primary" href="/web-office/create-customer.html">Create Customer</a>
-        <a class="button primary" href="/web-office/create-order.html">Create Order</a>
+        <a class="button primary" href="/web-office/create-edit-customer.html">Create Customer</a>
+        <a class="button primary" href="/web-office/create-edit-order.html">Create Order</a>
         <a class="button primary" href="/web-office/leads-list.html">Leads List</a>
         <a class="button secondary" href="/admin/admin.html">Admin</a>
       </p>
-      {% if services %}
-      <section class="services">
-        <h2>Services</h2>
-        <ul class="services-list">
-        {% for s in services %}
-          <li class="service-item">
-            <div class="service-head"><span class="service-type">{{ s.service_type }}</span> — <span class="service-name">{{ s.name }}</span></div>
-            <p class="service-desc">{{ s.description }}</p>
-          </li>
-        {% endfor %}
-        </ul>
-      </section>
-      {% else %}
-      <p>No services available yet.</p>
-      {% endif %}
 
       {% if customers %}
       <section class="customers">
-        <h2>Customers</h2>
+        <div class="section-header">
+          <h2>Customers</h2>
+          <a class="button secondary small" href="/web-office/customers-list.html">View All</a>
+        </div>
         <ul class="customers-list">
         {% for c in customers %}
           <li class="customer-item">
-            <div class="customer-head"><span class="customer-name">{{ c.first_name }} {{ c.last_name }}</span></div>
+            <div class="customer-head">
+              <span class="customer-name">{{ c.first_name }} {{ c.last_name }}</span>
+            </div>
             <p class="customer-contact">{{ c.email or c.phone }}</p>
+            <div class="customer-actions">
+              <a class="button secondary small" href="/web-office/create-edit-customer.html?customer_id={{ c.id }}">Update</a>
+            </div>
           </li>
         {% endfor %}
         </ul>
@@ -53,11 +45,13 @@
 
       {% if orders %}
       <section class="orders">
-        <h2>Orders</h2>
+        <div class="section-header">
+          <h2>Orders</h2>
+          <a class="button secondary small" href="/web-office/orders-list.html">View All</a>
+        </div>
         <table class="orders-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Customer</th>
               <th>Service</th>
               <th>Provider</th>
@@ -65,12 +59,12 @@
               <th>End</th>
               <th>Status</th>
               <th>Details</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for order in orders %}
             <tr>
-              <td>{{ order.id }}</td>
               <td>{{ order.customer_name }}</td>
               <td>{{ order.service_name }}</td>
               <td>{{ order.provider_name }}</td>
@@ -78,6 +72,9 @@
               <td>{{ order.end_time }}</td>
               <td>{{ order.status }}</td>
               <td>{{ order.details }}</td>
+              <td>
+                <a class="button secondary small" href="/web-office/create-edit-order.html?order_id={{ order.id }}">Edit</a>
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -85,6 +82,33 @@
       </section>
       {% else %}
       <p>No orders available yet.</p>
+      {% endif %}
+
+      <div class="orders-divider" aria-hidden="true"></div>
+
+      <div class="button-row bottom-actions">
+        <a class="button primary" href="/web-office/create-edit-service.html">Create Service</a>
+      </div>
+
+      {% if services %}
+      <section class="services">
+        <div class="services-header">
+          <h2>Services</h2>
+        </div>
+        <ul class="services-list">
+        {% for s in services %}
+          <li class="service-item">
+            <div class="service-head"><span class="service-type">{{ s.service_type }}</span> — <span class="service-name">{{ s.name }}</span></div>
+            <p class="service-desc">{{ s.description }}</p>
+            <div class="customer-actions">
+              <a class="button secondary small" href="/web-office/create-edit-service.html?service_id={{ s.id }}">Edit</a>
+            </div>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% else %}
+      <p>No services available yet.</p>
       {% endif %}
     </div>
   </body>

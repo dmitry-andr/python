@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Customers List</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="section-header">
+        <h1>Customers</h1>
+        <a class="button secondary" href="/web-office/web-office.html">Back to Web Office</a>
+      </div>
+
+      {% if customers %}
+      <section class="customers">
+        <ul class="customers-list">
+        {% for c in customers %}
+          <li class="customer-item">
+            <div class="customer-head">
+              <span class="customer-name">{{ c.first_name }} {{ c.last_name }}</span>
+            </div>
+            <p class="customer-contact">{{ c.email or c.phone }}</p>
+            <div class="customer-actions">
+              <a class="button secondary small" href="/web-office/create-edit-customer.html?customer_id={{ c.id }}">Edit</a>
+            </div>
+          </li>
+        {% endfor %}
+        </ul>
+      </section>
+      {% else %}
+      <p>No customers available yet.</p>
+      {% endif %}
+    </div>
+  </body>
+</html>

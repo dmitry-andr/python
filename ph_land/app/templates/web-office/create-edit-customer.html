@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Customer</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>{% if customer %}Edit Customer{% else %}Create Customer{% endif %}</h1>
+      <p class="lead">{% if customer %}Update the customer record below.{% else %}Enter customer details to create a new customer record.{% endif %}</p>
+
+      <form class="service-form" action="/web-office/create-edit-customer" method="post">
+        {% if customer %}
+        <input type="hidden" name="id" value="{{ customer.id }}">
+        {% endif %}
+
+        <label for="first_name">First Name</label>
+        <input id="first_name" name="first_name" type="text" value="{{ customer.first_name if customer else '' }}" required>
+
+        <label for="last_name">Last Name</label>
+        <input id="last_name" name="last_name" type="text" value="{{ customer.last_name if customer else '' }}" required>
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" value="{{ customer.email if customer and customer.email else '' }}">
+
+        <label for="phone">Phone</label>
+        <input id="phone" name="phone" type="tel" value="{{ customer.phone if customer and customer.phone else '' }}">
+
+        <div class="button-row">
+          <button class="button primary" type="submit">{% if customer %}Update{% else %}Save{% endif %}</button>
+          <button class="button secondary" type="button" onclick="window.location.href='/web-office/web-office.html'">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from app.utils.config import BASE_DIR, EMBEDDING_OPENAI_MODEL, VECTOR_DB_DIR
+from app.utils.config import BASE_DIR, EMBEDDING_OPENAI_MODEL, DB_RAG_VECTOR_DIR
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
@@ -31,8 +31,8 @@ def build_or_load_vectorstore(force_rebuild: bool = False) -> Chroma:
     or the DB doesn't exist yet.
     """
     embeddings = OpenAIEmbeddings(model=EMBEDDING_OPENAI_MODEL)
-    if os.path.isdir(VECTOR_DB_DIR) and not force_rebuild:
-        return Chroma(persist_directory=str(VECTOR_DB_DIR), embedding_function=embeddings)
+    if os.path.isdir(DB_RAG_VECTOR_DIR) and not force_rebuild:
+        return Chroma(persist_directory=str(DB_RAG_VECTOR_DIR), embedding_function=embeddings)
 
     rag_context_data_path = resolve_rag_context_dir()
     docs = []
@@ -51,7 +51,7 @@ def build_or_load_vectorstore(force_rebuild: bool = False) -> Chroma:
     vectorstore = Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
-        persist_directory=str(VECTOR_DB_DIR),
+        persist_directory=str(DB_RAG_VECTOR_DIR),
     )
     return vectorstore
 
@@ -68,7 +68,7 @@ def get_vectorstore_summary() -> dict:
 
     if collection is None:
         return {
-            "vector_db_dir": str(VECTOR_DB_DIR),
+            "vector_db_dir": str(DB_RAG_VECTOR_DIR),
             "document_count": 0,
             "total_characters": 0,
             "source_files": [],
@@ -99,7 +99,7 @@ def get_vectorstore_summary() -> dict:
         )
 
     return {
-        "vector_db_dir": str(VECTOR_DB_DIR),
+        "vector_db_dir": str(DB_RAG_VECTOR_DIR),
         "document_count": len(documents),
         "total_characters": sum(len(document or "") for document in documents),
         "source_files": sorted(set(source_files)),

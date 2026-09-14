@@ -14,23 +14,28 @@ APP_NAME = "ph_land"
 APP_VERSION = "0.1.0"
 
 RUNTIME_DATA_DIR = BASE_DIR / "runtime_data"
+DB_FOLDER = RUNTIME_DATA_DIR / "db"
+DB_APP_DATA_PATH = DB_FOLDER / "app/ph_land.db"
+DB_RAG_VECTOR_DIR = DB_FOLDER / "rag_chroma_db"
 SESSIONS_FILE = RUNTIME_DATA_DIR / "chat_sessions/sessions.json"
 CHAT_LOGS_DIR = RUNTIME_DATA_DIR / "chat_sessions/logs"
 SERVICES_FILE = RUNTIME_DATA_DIR / "services.json"
 ORDERS_FILE = RUNTIME_DATA_DIR / "orders.json"
-CUSTOMERS_FILE = RUNTIME_DATA_DIR / "customers.json"
-LEADS_FILE_PATH = RUNTIME_DATA_DIR / "leads.json"
+LEADS_DIR = RUNTIME_DATA_DIR / "leads"
+LEADS_FILE_PATH = LEADS_DIR / "leads.jsonl"
 DEFAULT_WORKSPACE_FOLDER_PATH = BASE_DIR / "app/llm/workspace"
 
-VECTOR_DB_DIR = RUNTIME_DATA_DIR / "chroma_db"
 
 STATIC_DIR = BASE_DIR / "app" / "static"
 TEMPLATES_DIR = BASE_DIR / "app" / "templates"
 FAVICON_PATH = STATIC_DIR / "favicon.ico"
+WEB_OFFICE_CUSTOMERS_LIST_LIMIT = 3
 
 MAX_HISTORY_TURNS = 10
 MEANINGLESS_THRESHOLD = 5
 JSON_INDENT = 2
+USE_RAG = 0
+
 
 # Model choice: keep this cheap and low-temperature for formal tasks.
 MAIN_OPENAI_LLM_MODEL = "gpt-4.1-mini"

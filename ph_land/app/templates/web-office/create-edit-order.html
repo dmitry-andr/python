@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if order %}Edit Order{% else %}Create Order{% endif %}</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+    <script src="/static/web-office/orders.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>{% if order %}Edit Order{% else %}Create Order{% endif %}</h1>
+      <p class="lead">{% if order %}Update the order details below.{% else %}Fill out the fields below to create a new Order.{% endif %}</p>
+      <p class="meta">Path: /web-office/create-edit-order.html</p>
+
+      <form class="order-form" action="/web-office/create-edit-order" method="post">
+        {% if order %}
+        <input type="hidden" name="id" value="{{ order.id }}">
+        {% endif %}
+
+        <label for="customer_id">Customer</label>
+        <select id="customer_id" name="customer_id" required>
+          <option value="">Select a customer</option>
+          {% for customer in customers %}
+          <option value="{{ customer.id }}" {% if order and customer.id == order.customer_id %}selected{% endif %}>{{ customer.first_name }} {{ customer.last_name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="service_id">Service</label>
+        <select id="service_id" name="service_id" required>
+          <option value="">Select a service</option>
+          {% for service in services %}
+          <option value="{{ service.id }}" {% if order and service.id == order.service_id %}selected{% endif %}>{{ service.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="provider_id">Provider ID</label>
+        <input id="provider_id" name="provider_id" type="text" value="{{ order.provider_id if order and order.provider_id else '' }}">
+   
+        <label for="start_time">Start Time</label>
+        <input id="start_time" name="start_time" type="datetime-local" value="{{ order.start_time.strftime('%Y-%m-%dT%H:%M') if order else '' }}" required>
+
+        <label for="end_time">End Time</label>
+        <input id="end_time" name="end_time" type="datetime-local" value="{{ order.end_time.strftime('%Y-%m-%dT%H:%M') if order else '' }}" required>
+        
+        <label for="details">Details</label>
+        <textarea id="details" name="details" rows="4" placeholder="Enter order details">{{ order.details if order else '' }}</textarea>
+
+        <div class="button-row">
+          <button class="button primary" type="submit">{% if order %}Update{% else %}Save{% endif %}</button>
+          <button class="button secondary" type="button" onclick="window.location.href='/web-office/web-office.html'">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

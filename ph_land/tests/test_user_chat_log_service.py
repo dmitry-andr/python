@@ -24,6 +24,23 @@ def test_save_lead_records_session_id(tmp_path, monkeypatch):
     assert data["capturedInSessionId"] == "session-123"
 
 
+def test_save_lead_creates_missing_parent_directory(tmp_path, monkeypatch):
+    leads_path = tmp_path / "nested" / "dir" / "leads.jsonl"
+    monkeypatch.setattr("app.llm.core.llm_lead_capture.LEADS_FILE_PATH", leads_path)
+
+    lead = Lead(
+        name="Bob",
+        contact="555-5678",
+        service_interest="portrait",
+        ready_to_book=True,
+    )
+
+    save_lead(lead)
+
+    assert leads_path.exists()
+    assert json.loads(leads_path.read_text(encoding="utf-8").strip())["name"] == "Bob"
+
+
 def test_write_and_append(tmp_path):
     # Redirect logs directory to a temporary path
     ulog.CHAT_LOGS_DIR = tmp_path

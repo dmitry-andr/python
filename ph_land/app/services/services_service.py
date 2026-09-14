@@ -1,41 +1,32 @@
 from __future__ import annotations
 
-import json
 from typing import List
 
+from app.dao.service_dao import ServiceDAO
 from app.domain.service import Service
-from app.utils.config import SERVICES_FILE
+
+_dao = ServiceDAO()
+
 
 def load_services() -> List[Service]:
-    try:
-        with SERVICES_FILE.open("r", encoding="utf-8") as fh:
-            data = json.load(fh)
-            # Convert stored dicts to Service instances for safer template access
-            services: List[Service] = []
-            for item in data:
-                try:
-                    services.append(Service(**item))
-                except Exception:
-                    # skip malformed entries
-                    continue
-            return services
-    except Exception:
-        return []
+    return _dao.list_services()
 
 
 def save_services(services: List[Service] | List[dict]) -> None:
-    # Normalize to list of dicts for JSON serialization
-    out = []
-    for s in services:
-        if isinstance(s, Service):
-            out.append(s.dict())
+    for service in services:
+        if isinstance(service, Service):
+            _dao.save_service(service)
         else:
-            out.append(s)
-    with SERVICES_FILE.open("w", encoding="utf-8") as fh:
-        json.dump(out, fh, indent=2)
+            _dao.save_service(Service(**service))
 
 
 def append_service(service: Service) -> None:
-    services = load_services()
-    services.append(service)
-    save_services(services)
+    _dao.save_service(service)
+
+
+def get_service(service_id: str) -> Service | None:
+    return _dao.get_service_by_id(service_id)
+
+
+def update_service(service: Service) -> None:
+    _dao.update_service(service)

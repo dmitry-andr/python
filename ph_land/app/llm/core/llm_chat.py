@@ -8,7 +8,7 @@ from app.llm.core.llm_factory import get_llm
 from app.llm.core.llm_message_category_classifier import classify_message
 from app.llm.core.prompt_loader import load_prompt
 from app.llm.rag.rag_retriever import get_retriever
-from app.utils.config import MEANINGLESS_THRESHOLD
+from app.utils.config import MEANINGLESS_THRESHOLD, USE_RAG
 from app.utils.user_session_store import MAX_HISTORY_TURNS, session_store
 
 
@@ -25,14 +25,40 @@ class _SafeRetriever:
 
 def _get_or_create_retriever(k: int = 4):
     global _retriever
-    if _retriever is not None:
+
+    # Keep a successful retriever cached, but do not poison the singleton with
+    # a no-op fallback. A transient initialization issue should be retried on the
+    # next turn instead of leaving every later request with empty documents.
+    if _retriever is not None and not isinstance(_retriever, _SafeRetriever):
         return _retriever
+
     try:
         _retriever = get_retriever(k=k)
+        return _retriever
     except Exception as exc:
         print("Warning: RAG retriever initialization failed:", exc)
-        _retriever = _SafeRetriever()
-    return _retriever
+        return _SafeRetriever()
+
+
+def _retrieve_docs(retriever, query: str):
+    """Handle LangChain retriever API differences across versions."""
+    if retriever is None:
+        return []
+
+    for method_name in ("get_relevant_documents", "_get_relevant_documents", "invoke", "retrieve"):
+        method = getattr(retriever, method_name, None)
+        if method is None:
+            continue
+        try:
+            result = method(query)
+            if result is None:
+                return []
+            return result
+        except TypeError:
+            # Some retrievers expect a different signature or use invocation
+            # semantics that are not a direct query call.
+            continue
+    return []
 
 # --------------------------------------------------------------------------
 # LLM output schema
@@ -150,21 +176,18 @@ class LLMService:
                 "meaningless_messages": session.meaningless_messages,
             }
 
-        category = classify_message(message, _history_to_messages(session.history))
-
         # Retrieve relevant documents from the local RAG vectorstore and
         # include them in the prompt so the LLM can ground its answer on
         # the business data stored in markdown files.
         docs = []
-        try:
-            retr = _get_or_create_retriever(k=4)
-            if hasattr(retr, "get_relevant_documents"):
-                docs = retr.get_relevant_documents(message)
-            elif hasattr(retr, "retrieve"):
-                docs = retr.retrieve(message)
-        except Exception as e:
-            print("RAG retrieval failed:", e)
+        if USE_RAG:
+            try:
+                retr = _get_or_create_retriever(k=4)
+                docs = _retrieve_docs(retr, message)
+            except Exception as e:
+                print("RAG retrieval failed:", e)
 
+        print(f"Retrieved {len(docs)} RAG docs for message: {message}")
         if docs:
             augmented_message = (
                 "Context from knowledge base:\n" + _format_docs_for_rag(docs) + "\n\n" + message

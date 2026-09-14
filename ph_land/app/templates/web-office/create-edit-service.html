@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if service %}Edit Service{% else %}Create Service{% endif %}</title>
+    <link rel="stylesheet" href="/static/web-office/styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1>{% if service %}Edit Service{% else %}Create Service{% endif %}</h1>
+      <p class="lead">{% if service %}Update the service details below.{% else %}Fill in the fields below to create a new Service object.{% endif %}</p>
+      <p class="meta">Path: /web-office/create-edit-service.html</p>
+
+      <form class="service-form" action="/web-office/create-edit-service" method="post">
+        {% if service %}
+        <input type="hidden" name="id" value="{{ service.id }}">
+        {% endif %}
+
+        <label for="business_id">Business ID</label>
+        <input id="business_id" name="business_id" type="text" value="{{ service.business_id if service else '' }}" required>
+
+        <label for="service_type">Service Type</label>
+        <input id="service_type" name="service_type" type="text" value="{{ service.service_type if service else '' }}" required>
+
+        <label for="service_sub_type">Service Sub-Type</label>
+        <input id="service_sub_type" name="service_sub_type" type="text" value="{{ service.service_sub_type if service else '' }}" required>
+
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="{{ service.name if service else '' }}" required>
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="5" required>{{ service.description if service else '' }}</textarea>
+
+        <div class="button-row">
+          <button class="button primary" type="submit">{% if service %}Update{% else %}Save{% endif %}</button>
+          <button class="button secondary" type="button" onclick="window.location.href='/web-office/web-office.html'">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

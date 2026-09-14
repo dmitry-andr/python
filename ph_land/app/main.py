@@ -7,9 +7,9 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.utils.config import APP_NAME, APP_VERSION, VECTOR_DB_DIR, RUNTIME_DATA_DIR, FAVICON_PATH, STATIC_DIR, TEMPLATES_DIR
-from app.services.services_service import append_service, load_services
-from app.services.customers_service import append_customer, load_customers
+from app.utils.config import APP_NAME, APP_VERSION, DB_RAG_VECTOR_DIR, RUNTIME_DATA_DIR, FAVICON_PATH, STATIC_DIR, TEMPLATES_DIR, WEB_OFFICE_CUSTOMERS_LIST_LIMIT
+from app.services.services_service import append_service, get_service, load_services, update_service
+from app.services.customers_service import append_customer, load_customers, load_recent_customers, update_customer
 from app.services.order_service import OrderService
 from app.services.leads_service import load_leads, load_session_history_for_lead
 from app.domain import Order
@@ -41,8 +41,8 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 @app.get("/web-office/web-office.html", response_class=HTMLResponse)
 async def web_office(request: Request):
     services = load_services()
-    customers = load_customers()
-    orders = OrderService.list_orders()
+    customers = load_recent_customers(WEB_OFFICE_CUSTOMERS_LIST_LIMIT)
+    orders = OrderService.list_recent_orders(limit=3)
     service_lookup = {service.id: service.name for service in services}
     customer_lookup = {
         customer.id: f"{customer.first_name} {customer.last_name}"
@@ -106,14 +106,17 @@ async def chat_details_page(request: Request):
     )
 
 
-@app.get("/web-office/create-service.html", response_class=HTMLResponse)
+@app.get("/web-office/create-edit-service.html", response_class=HTMLResponse)
 async def create_service(request: Request):
-    return templates.TemplateResponse(request, "web-office/create-service.html", {})
+    service_id = request.query_params.get("service_id")
+    service = get_service(service_id) if service_id else None
+    return templates.TemplateResponse(request, "web-office/create-edit-service.html", {"service": service})
 
 
-@app.post("/web-office/create-service")
+@app.post("/web-office/create-edit-service")
 async def create_service_post(request: Request):
     form = await request.form()
+    service_id = form.get("id")
     payload = {
         "business_id": form.get("business_id", ""),
         "service_type": form.get("service_type", ""),
@@ -121,27 +124,36 @@ async def create_service_post(request: Request):
         "name": form.get("name", ""),
         "description": form.get("description", ""),
     }
+    if service_id:
+        payload["id"] = service_id
+
     service = Service(**payload)
 
-    append_service(service)
+    if service_id:
+        update_service(service)
+    else:
+        append_service(service)
 
     return RedirectResponse(url="/web-office/web-office.html", status_code=303)
 
 
-@app.get("/web-office/create-order.html", response_class=HTMLResponse)
+@app.get("/web-office/create-edit-order.html", response_class=HTMLResponse)
 async def create_order(request: Request):
+    order_id = request.query_params.get("order_id")
+    order = OrderService.get_order(order_id) if order_id else None
     services = load_services()
     customers = load_customers()
     return templates.TemplateResponse(
         request,
-        "web-office/create-order.html",
-        {"services": services, "customers": customers},
+        "web-office/create-edit-order.html",
+        {"services": services, "customers": customers, "order": order},
     )
 
 
-@app.post("/web-office/create-order")
+@app.post("/web-office/create-edit-order")
 async def create_order_post(request: Request):
     form = await request.form()
+    order_id = form.get("id")
     start_time = form.get("start_time", "")
     end_time = form.get("end_time", "")
 
@@ -155,29 +167,77 @@ async def create_order_post(request: Request):
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Invalid date/time: {exc}") from exc
 
+    if start >= end:
+        raise HTTPException(status_code=400, detail="Start time must be before end time.")
+
+    provider_id = form.get("provider_id", "")
     payload = {
+        "id": order_id or None,
         "customer_id": form.get("customer_id", ""),
         "service_id": form.get("service_id", ""),
-        "provider_id": form.get("provider_id", ""),
+        "provider_id": provider_id or None,
         "start_time": start,
         "end_time": end,
         "details": form.get("details", ""),
     }
     order = Order(**payload)
-    OrderService.create_order(order)
+
+    if order_id:
+        OrderService.update_order(order_id, order)
+    else:
+        OrderService.create_order(order)
 
     return RedirectResponse(url="/web-office/web-office.html", status_code=303)
 
 
-@app.get("/web-office/create-customer.html", response_class=HTMLResponse)
+@app.get("/web-office/orders-list.html", response_class=HTMLResponse)
+async def orders_list_page(request: Request):
+    services = load_services()
+    customers = load_recent_customers(WEB_OFFICE_CUSTOMERS_LIST_LIMIT)
+    orders = OrderService.list_orders()
+    service_lookup = {service.id: service.name for service in services}
+    customer_lookup = {
+        customer.id: f"{customer.first_name} {customer.last_name}"
+        for customer in customers
+    }
+    order_items = []
+    for order in orders:
+        order_items.append(
+            {
+                "id": order.id,
+                "customer_name": customer_lookup.get(order.customer_id, order.customer_id),
+                "service_name": service_lookup.get(order.service_id, order.service_id),
+                "provider_name": order.provider_id,
+                "start_time": order.start_time,
+                "end_time": order.end_time,
+                "status": order.status.value,
+                "details": order.details,
+            }
+        )
+    return templates.TemplateResponse(request, "web-office/orders-list.html", {"orders": order_items})
+
+
+@app.get("/web-office/customers-list.html", response_class=HTMLResponse)
+async def customers_list_page(request: Request):
+    customers = sorted(load_customers(), key=lambda customer: customer.created_at, reverse=True)
+    return templates.TemplateResponse(request, "web-office/customers-list.html", {"customers": customers})
+
+
+@app.get("/web-office/create-edit-customer.html", response_class=HTMLResponse)
 async def create_customer(request: Request):
-    return templates.TemplateResponse(request, "web-office/create-customer.html", {})
+    customer_id = request.query_params.get("customer_id")
+    customer = None
+    if customer_id:
+        customer = next((c for c in load_customers() if c.id == customer_id), None)
+    return templates.TemplateResponse(request, "web-office/create-edit-customer.html", {"customer": customer})
 
 
-@app.post("/web-office/create-customer")
+@app.post("/web-office/create-edit-customer")
 async def create_customer_post(request: Request):
     form = await request.form()
+    customer_id = form.get("id")
     payload = {
+        "id": customer_id,
         "first_name": form.get("first_name", ""),
         "last_name": form.get("last_name", ""),
         "email": form.get("email", None),
@@ -185,7 +245,10 @@ async def create_customer_post(request: Request):
     }
     customer = Customer(**payload)
 
-    append_customer(customer)
+    if customer_id:
+        update_customer(customer)
+    else:
+        append_customer(customer)
 
     return RedirectResponse(url="/web-office/web-office.html", status_code=303)
 
@@ -226,7 +289,7 @@ async def init_rag(request: Request):
 async def rag_status():
     """Return whether the RAG vector DB appears initialized."""
     try:
-        p = Path(VECTOR_DB_DIR)
+        p = Path(DB_RAG_VECTOR_DIR)
         initialized = p.exists() and any(p.iterdir())
         return {"initialized": bool(initialized), "path": str(p)}
     except Exception as exc:
